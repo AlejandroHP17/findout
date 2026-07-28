@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://bjv47uhyflmfm"]
+
+[ext_resource type="Script" uid="uid://dgvbdmvuwxfu1" path="res://scripts/nivel_1.gd" id="1_nivel"]
+[ext_resource type="Script" uid="uid://cb4v5i3chn33r" path="res://scripts/game_manager.gd" id="2_gm"]
+[ext_resource type="Resource" uid="uid://junsfksicopp" path="res://data/nivel_1_config.tres" id="3_cfg"]
+[ext_resource type="PackedScene" path="res://scenes/game_ui.tscn" id="4_ui"]
+
+[node name="Nivel1" type="Node2D"]
+script = ExtResource("1_nivel")
+level_config = ExtResource("3_cfg")
+debug_show_hotspots = false
+
+[node name="Background" type="Sprite2D" parent="."]
+centered = false
+
+[node name="Objects" type="Node2D" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("2_gm")
+
+[node name="GameUI" parent="." instance=ExtResource("4_ui")]
