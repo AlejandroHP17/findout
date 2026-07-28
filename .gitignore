@@ -1,3 +1,19 @@
-# Godot 4+ specific ignores
-.godot/
-/android/
+# Find Out — Android / Gradle
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/app/build
+/findout/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+
+# Godot prototype
+godot/.godot/
+godot/**/*.import
+godot/.DS_Store
