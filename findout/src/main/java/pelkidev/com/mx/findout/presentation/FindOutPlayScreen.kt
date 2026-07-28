@@ -7,7 +7,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -36,7 +39,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -45,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -56,8 +64,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import pelkidev.com.mx.findout.R
 import pelkidev.com.mx.findout.domain.LevelConfig
+import pelkidev.com.mx.findout.domain.ZoomMode
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+private const val DragThresholdPx = 14f
 
 @Composable
 fun FindOutPlayScreen(
@@ -192,23 +204,60 @@ private fun LevelImageBoard(
     onPopFinished: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
         val boxW = constraints.maxWidth.toFloat()
         val boxH = constraints.maxHeight.toFloat()
-        val scale = min(boxW / level.imageWidth, boxH / level.imageHeight)
+        val scale = remember(level.levelId, boxW, boxH) {
+            computeScale(level, boxW, boxH)
+        }
         val drawnW = level.imageWidth * scale
         val drawnH = level.imageHeight * scale
-        val offsetX = (boxW - drawnW) / 2f
-        val offsetY = (boxH - drawnH) / 2f
+        val centered = remember(drawnW, drawnH, boxW, boxH) {
+            Offset((boxW - drawnW) / 2f, (boxH - drawnH) / 2f)
+        }
+
+        var panOffset by remember(level.levelId, boxW, boxH, scale) {
+            mutableStateOf(centered)
+        }
+        val panOffsetUpdated by rememberUpdatedState(panOffset)
+
+        LaunchedEffect(level.levelId, boxW, boxH, scale) {
+            panOffset = clampPanOffset(centered, drawnW, drawnH, boxW, boxH)
+        }
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(level.levelId, scale, offsetX, offsetY) {
-                    detectTapGestures { tap ->
-                        val imageX = (tap.x - offsetX) / scale
-                        val imageY = (tap.y - offsetY) / scale
-                        if (imageX in 0f..level.imageWidth && imageY in 0f..level.imageHeight) {
-                            onTapImage(imageX, imageY)
+                .pointerInput(level.levelId, scale, drawnW, drawnH, boxW, boxH, level.enablePan) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        var totalDrag = 0f
+                        var didPan = false
+                        var current = panOffsetUpdated
+
+                        drag(down.id) { change ->
+                            val delta = change.positionChange()
+                            totalDrag += delta.getDistance()
+                            if (level.enablePan && totalDrag >= DragThresholdPx) {
+                                didPan = true
+                                current = clampPanOffset(
+                                    current + delta,
+                                    drawnW,
+                                    drawnH,
+                                    boxW,
+                                    boxH,
+                                )
+                                panOffset = current
+                                change.consume()
+                            }
+                        }
+
+                        if (!didPan) {
+                            val imageX = (down.position.x - current.x) / scale
+                            val imageY = (down.position.y - current.y) / scale
+                            if (imageX in 0f..level.imageWidth && imageY in 0f..level.imageHeight) {
+                                onTapImage(imageX, imageY)
+                            }
                         }
                     }
                 },
@@ -216,19 +265,27 @@ private fun LevelImageBoard(
             Image(
                 painter = painterResource(level.backgroundRes),
                 contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .offset {
+                        IntOffset(panOffset.x.roundToInt(), panOffset.y.roundToInt())
+                    }
+                    .requiredSize(
+                        width = with(density) { drawnW.toDp() },
+                        height = with(density) { drawnH.toDp() },
+                    ),
             )
 
             if (debugShowHotspots) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     level.objects.forEach { def ->
                         if (objectives.any { it.id == def.id && it.found }) return@forEach
-                        val left = offsetX + def.hotspot.left * scale
-                        val top = offsetY + def.hotspot.top * scale
                         drawRect(
                             color = Color(1f, 0.85f, 0.1f, 0.35f),
-                            topLeft = Offset(left, top),
+                            topLeft = Offset(
+                                panOffset.x + def.hotspot.left * scale,
+                                panOffset.y + def.hotspot.top * scale,
+                            ),
                             size = Size(def.hotspot.width * scale, def.hotspot.height * scale),
                         )
                     }
@@ -238,8 +295,8 @@ private fun LevelImageBoard(
             val foundDef = level.objects.firstOrNull { it.id == lastFoundId }
             if (foundDef != null) {
                 FoundPopOverlay(
-                    leftPx = offsetX + foundDef.hotspot.left * scale,
-                    topPx = offsetY + foundDef.hotspot.top * scale,
+                    leftPx = panOffset.x + foundDef.hotspot.left * scale,
+                    topPx = panOffset.y + foundDef.hotspot.top * scale,
                     widthPx = foundDef.hotspot.width * scale,
                     heightPx = foundDef.hotspot.height * scale,
                     onFinished = onPopFinished,
@@ -247,6 +304,34 @@ private fun LevelImageBoard(
             }
         }
     }
+}
+
+private fun computeScale(level: LevelConfig, boxW: Float, boxH: Float): Float {
+    return when (level.zoomMode) {
+        ZoomMode.FIT_ENTIRE -> min(boxW / level.imageWidth, boxH / level.imageHeight)
+        ZoomMode.COVER_SHORT_SIDE -> max(boxW / level.imageWidth, boxH / level.imageHeight)
+        ZoomMode.FIXED -> level.fixedZoom
+    }
+}
+
+private fun clampPanOffset(
+    offset: Offset,
+    drawnW: Float,
+    drawnH: Float,
+    boxW: Float,
+    boxH: Float,
+): Offset {
+    val x = if (drawnW <= boxW) {
+        (boxW - drawnW) / 2f
+    } else {
+        offset.x.coerceIn(boxW - drawnW, 0f)
+    }
+    val y = if (drawnH <= boxH) {
+        (boxH - drawnH) / 2f
+    } else {
+        offset.y.coerceIn(boxH - drawnH, 0f)
+    }
+    return Offset(x, y)
 }
 
 @Composable

@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,7 +40,8 @@ fun FindOutScreen(
     when (state.screen) {
         FindOutScreenState.Menu -> FindOutMenuScreen(
             onExit = onExit,
-            onStart = { viewModel.startLevel(LevelCatalog.nivel1) },
+            onStartLevel1 = { viewModel.startLevel(LevelCatalog.nivel1) },
+            onStartLevel2 = { viewModel.startLevel(LevelCatalog.nivel2) },
         )
         FindOutScreenState.Playing -> FindOutPlayScreen(
             state = state,
@@ -55,9 +57,9 @@ fun FindOutScreen(
 @Composable
 private fun FindOutMenuScreen(
     onExit: () -> Unit,
-    onStart: () -> Unit,
+    onStartLevel1: () -> Unit,
+    onStartLevel2: () -> Unit,
 ) {
-    // Column a pantalla completa primero; el botón atrás se dibuja después (z-order).
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -85,10 +87,17 @@ private fun FindOutMenuScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
             Button(
-                onClick = onStart,
+                onClick = onStartLevel1,
                 modifier = Modifier.fillMaxWidth(0.7f),
             ) {
-                Text(stringResource(R.string.findout_start_level))
+                Text(stringResource(R.string.findout_start_level_1))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onStartLevel2,
+                modifier = Modifier.fillMaxWidth(0.7f),
+            ) {
+                Text(stringResource(R.string.findout_start_level_2))
             }
         }
 

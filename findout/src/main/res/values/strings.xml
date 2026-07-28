@@ -2,6 +2,8 @@
     <string name="findout_title">Find Out</string>
     <string name="findout_menu_subtitle">Encuentra todos los objetos ocultos en la imagen</string>
     <string name="findout_start_level">Jugar nivel 1</string>
+    <string name="findout_start_level_1">Jugar nivel 1</string>
+    <string name="findout_start_level_2">Jugar nivel 2 (scroll)</string>
     <string name="findout_back">Volver</string>
     <string name="findout_back_menu">Menú</string>
     <string name="findout_progress">Encontrados: %1$d / %2$d</string>
