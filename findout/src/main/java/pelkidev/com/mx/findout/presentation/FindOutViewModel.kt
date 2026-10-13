@@ -23,11 +23,16 @@ class FindOutViewModel : ViewModel() {
             screen = FindOutScreenState.Playing,
             level = level,
             objectives = level.objects.map { def ->
-                ObjectiveUi(def.id, def.displayName, gameManager.isFound(def.id))
+                ObjectiveUi(
+                    id = def.id,
+                    displayName = def.displayName,
+                    iconRes = def.iconRes,
+                    found = gameManager.isFound(def.id),
+                )
             },
             foundCount = gameManager.foundCount,
             totalCount = gameManager.totalObjects,
-            statusMessage = "Toca los objetos ocultos",
+            statusMessage = "",
             levelCompleted = gameManager.isLevelComplete(),
             hasNextLevel = LevelCatalog.nextAfter(level.levelId) != null,
             lastFoundId = null,
@@ -53,7 +58,7 @@ class FindOutViewModel : ViewModel() {
                 },
                 foundCount = gameManager.foundCount,
                 totalCount = gameManager.totalObjects,
-                statusMessage = "¡Encontraste: ${hit.displayName}!",
+                statusMessage = "",
                 levelCompleted = gameManager.isLevelComplete(),
                 lastFoundId = hit.id,
             )

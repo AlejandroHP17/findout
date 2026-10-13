@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import pelkidev.com.mx.findout.R
 import pelkidev.com.mx.findout.domain.LevelCatalog
+import pelkidev.com.mx.findout.domain.LevelConfig
 
 @Composable
 fun FindOutScreen(
@@ -47,8 +48,8 @@ fun FindOutScreen(
     when (state.screen) {
         FindOutScreenState.Menu -> FindOutMenuScreen(
             onExit = onExit,
-            onStartLevel1 = { viewModel.startLevel(LevelCatalog.nivel1) },
-            onStartLevel2 = { viewModel.startLevel(LevelCatalog.nivel2) },
+            levels = LevelCatalog.all,
+            onStartLevel = viewModel::startLevel,
         )
         FindOutScreenState.Playing -> FindOutPlayScreen(
             state = state,
@@ -64,8 +65,8 @@ fun FindOutScreen(
 @Composable
 private fun FindOutMenuScreen(
     onExit: () -> Unit,
-    onStartLevel1: () -> Unit,
-    onStartLevel2: () -> Unit,
+    levels: List<LevelConfig>,
+    onStartLevel: (LevelConfig) -> Unit,
 ) {
     val gradient = Brush.verticalGradient(
         listOf(
@@ -113,27 +114,37 @@ private fun FindOutMenuScreen(
                     modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Button(
-                        onClick = onStartLevel1,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Text(stringResource(R.string.findout_start_level_1))
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = onStartLevel2,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    ) {
-                        Text(stringResource(R.string.findout_start_level_2))
+                    levels.forEachIndexed { index, level ->
+                        if (index > 0) Spacer(modifier = Modifier.height(12.dp))
+                        val label = when (level.levelId) {
+                            "nivel_1" -> stringResource(R.string.findout_start_level_1)
+                            "nivel_2" -> stringResource(R.string.findout_start_level_2)
+                            else -> level.levelId
+                        }
+                        if (index == 0) {
+                            Button(
+                                onClick = { onStartLevel(level) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                shape = RoundedCornerShape(16.dp),
+                            ) {
+                                Text(label)
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = { onStartLevel(level) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            ) {
+                                Text(label)
+                            }
+                        }
                     }
                 }
             }

@@ -1,8 +1,11 @@
 package pelkidev.com.mx.findout.presentation
 
+import androidx.annotation.DrawableRes
+
 data class ObjectiveUi(
     val id: String,
     val displayName: String,
+    @param:DrawableRes val iconRes: Int,
     val found: Boolean,
 )
 

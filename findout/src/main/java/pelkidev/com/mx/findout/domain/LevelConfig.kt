@@ -9,13 +9,14 @@ data class HiddenObjectDef(
     val displayName: String,
     /** Rectángulo en píxeles de la textura (left, top, right, bottom). */
     val hotspot: Rect,
+    @param:DrawableRes val iconRes: Int,
     val startsFound: Boolean = false,
 )
 
 enum class ZoomMode {
-    /** Encaja el mapa completo (Nivel 1). */
+    /** Encaja el mapa completo. */
     FIT_ENTIRE,
-    /** Llena el lado corto; permite pan en el eje sobrante (Nivel 2+). */
+    /** Llena el lado corto; permite pan en el eje sobrante (mapas grandes). */
     COVER_SHORT_SIDE,
     /** Escala fija (mapas muy grandes). */
     FIXED,
@@ -30,57 +31,114 @@ data class LevelConfig(
     val enablePan: Boolean = false,
     val zoomMode: ZoomMode = ZoomMode.FIT_ENTIRE,
     val fixedZoom: Float = 1f,
+    /** Pinch-zoom del jugador sobre la escala base (FIT/COVER/FIXED). */
+    val enablePinchZoom: Boolean = true,
+    val minUserZoom: Float = 1f,
+    val maxUserZoom: Float = 3.5f,
 )
 
+/** Hotspot cuadrado centrado; sizeFraction ≈ fracción del ancho del mapa. */
+private fun overlayRect(
+    centerX: Float,
+    centerY: Float,
+    imageWidth: Float,
+    sizeFraction: Float = 0.08f,
+): Rect {
+    val half = imageWidth * sizeFraction * 0.5f
+    return Rect(centerX - half, centerY - half, centerX + half, centerY + half)
+}
+
 object LevelCatalog {
+    private const val W = 1024f
+    private const val H = 1536f
+
     val nivel1 = LevelConfig(
         levelId = "nivel_1",
         backgroundRes = R.drawable.findout_background_1,
-        imageWidth = 1024f,
-        imageHeight = 1536f,
+        imageWidth = W,
+        imageHeight = H,
         enablePan = false,
         zoomMode = ZoomMode.FIT_ENTIRE,
         objects = listOf(
             HiddenObjectDef(
-                id = "objeto_a",
-                displayName = "Objeto A",
-                hotspot = Rect(180f, 420f, 300f, 520f),
+                id = "sock",
+                displayName = "Calcín",
+                hotspot = Rect(240f, 540f, 330f, 640f),
+                iconRes = R.drawable.findout_obj_sock,
             ),
             HiddenObjectDef(
-                id = "objeto_b",
-                displayName = "Objeto B",
-                hotspot = Rect(620f, 780f, 730f, 870f),
+                id = "paper_plane",
+                displayName = "Avión de papel",
+                hotspot = Rect(70f, 90f, 155f, 175f),
+                iconRes = R.drawable.findout_obj_paper_plane,
             ),
             HiddenObjectDef(
-                id = "objeto_c",
-                displayName = "Objeto C",
-                hotspot = Rect(400f, 1100f, 540f, 1210f),
+                id = "rubik",
+                displayName = "Cubo Rubik",
+                hotspot = Rect(455f, 990f, 540f, 1075f),
+                iconRes = R.drawable.findout_obj_rubik,
+            ),
+            HiddenObjectDef(
+                id = "keys",
+                displayName = "Llaves",
+                hotspot = Rect(420f, 1185f, 505f, 1270f),
+                iconRes = R.drawable.findout_obj_keys,
+            ),
+            HiddenObjectDef(
+                id = "dino",
+                displayName = "Dinosaurio",
+                hotspot = Rect(130f, 300f, 220f, 400f),
+                iconRes = R.drawable.findout_obj_dino,
             ),
         ),
     )
 
+    /** Cocina del caos — utensilios perdidos. */
     val nivel2 = LevelConfig(
         levelId = "nivel_2",
         backgroundRes = R.drawable.findout_background_2,
-        imageWidth = 1024f,
-        imageHeight = 1024f,
-        enablePan = true,
-        zoomMode = ZoomMode.COVER_SHORT_SIDE,
+        imageWidth = W,
+        imageHeight = H,
+        enablePan = false,
+        zoomMode = ZoomMode.FIT_ENTIRE,
+        enablePinchZoom = true,
+        minUserZoom = 1f,
+        maxUserZoom = 3.5f,
         objects = listOf(
+            // Entre trapos del fregadero (izq / centro)
             HiddenObjectDef(
-                id = "faro",
-                displayName = "Faro",
-                hotspot = Rect(80f, 120f, 190f, 250f),
+                id = "spatula",
+                displayName = "Espátula",
+                hotspot = overlayRect(240f, 820f, W, 0.08f),
+                iconRes = R.drawable.findout_obj_spatula,
             ),
+            // Encimera junto a harina
             HiddenObjectDef(
-                id = "ancla",
-                displayName = "Ancla",
-                hotspot = Rect(720f, 480f, 840f, 580f),
+                id = "egg",
+                displayName = "Huevo",
+                hotspot = overlayRect(500f, 720f, W, 0.07f),
+                iconRes = R.drawable.findout_obj_egg,
             ),
+            // Borde de la mesa
             HiddenObjectDef(
-                id = "brujula",
-                displayName = "Brújula",
-                hotspot = Rect(430f, 820f, 560f, 930f),
+                id = "mug",
+                displayName = "Taza",
+                hotspot = overlayRect(430f, 1200f, W, 0.08f),
+                iconRes = R.drawable.findout_obj_mug,
+            ),
+            // Nevera entre imanes
+            HiddenObjectDef(
+                id = "recipe",
+                displayName = "Receta",
+                hotspot = overlayRect(820f, 540f, W, 0.075f),
+                iconRes = R.drawable.findout_obj_recipe,
+            ),
+            // Cesta de verduras
+            HiddenObjectDef(
+                id = "chili",
+                displayName = "Chile",
+                hotspot = overlayRect(680f, 1080f, W, 0.08f),
+                iconRes = R.drawable.findout_obj_chili,
             ),
         ),
     )

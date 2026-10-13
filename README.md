@@ -39,6 +39,14 @@ Depende de: `pelkidev.com.mx.minijuegos:sdk:1.0.0`
 
 Edita `LevelCatalog` en `findout/.../domain/LevelConfig.kt` (`Rect` en píxeles de la imagen). Activa `debugShowHotspots` desde el ViewModel si necesitas ver las zonas.
 
+## Crear un nivel nuevo
+
+Usa el prompt base (temática, tamaño, objetos, etc.):
+
+→ [`docs/PROMPT_NUEVO_NIVEL.md`](docs/PROMPT_NUEVO_NIVEL.md)
+
+Copia el bloque «Pedido», rellénalo y pégalo en el chat del agente.
+
 ## CI
 
 Push a `main` → build/test + publish. Secret: `GH_PACKAGES_TOKEN` (`read:packages` + `write:packages`).
