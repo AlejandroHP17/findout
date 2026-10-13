@@ -8,7 +8,7 @@ import pelkidev.com.mx.minijuegos.sdk.GameModule
 object FindOutGameModule : GameModule {
     override val id: String = "findout"
     override val title: String = "Find Out"
-    override val description: String = "Encuentra todos los objetos ocultos en la imagen"
+    override val description: String = "Observa con calma y encuentra cada objeto oculto"
 
     @Composable
     override fun Entry(onExit: () -> Unit) {

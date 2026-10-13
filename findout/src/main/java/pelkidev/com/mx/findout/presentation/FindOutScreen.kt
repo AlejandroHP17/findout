@@ -10,19 +10,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,44 +67,75 @@ private fun FindOutMenuScreen(
     onStartLevel1: () -> Unit,
     onStartLevel2: () -> Unit,
 ) {
+    val gradient = Brush.verticalGradient(
+        listOf(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+        ),
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(gradient),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = stringResource(R.string.findout_title),
                 style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = stringResource(R.string.findout_menu_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
             )
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = onStartLevel1,
-                modifier = Modifier.fillMaxWidth(0.7f),
+            Spacer(modifier = Modifier.height(28.dp))
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(8.dp, RoundedCornerShape(24.dp)),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
             ) {
-                Text(stringResource(R.string.findout_start_level_1))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            OutlinedButton(
-                onClick = onStartLevel2,
-                modifier = Modifier.fillMaxWidth(0.7f),
-            ) {
-                Text(stringResource(R.string.findout_start_level_2))
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Button(
+                        onClick = onStartLevel1,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Text(stringResource(R.string.findout_start_level_1))
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = onStartLevel2,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Text(stringResource(R.string.findout_start_level_2))
+                    }
+                }
             }
         }
 
@@ -106,7 +144,9 @@ private fun FindOutMenuScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
-                .padding(8.dp),
+                .padding(8.dp)
+                .shadow(3.dp, CircleShape)
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
